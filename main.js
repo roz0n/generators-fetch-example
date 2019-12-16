@@ -2,6 +2,7 @@ let servedRequests = 0;
 let hasErrored = false;
 
 // Build UI
+// Excuse the verbosity...
 function render() {
   const body = document.querySelector("main");
   const container = document.createElement("div");
