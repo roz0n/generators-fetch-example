@@ -1,35 +1,58 @@
 let servedRequests = 0;
 let hasErrored = false;
+let hasCompleted = false;
+let requestedData = {};
+let generator = null;
 
 // Build UI
-// Excuse the verbosity...
 function render() {
   const body = document.querySelector("main");
   const container = document.createElement("div");
-  const button = document.createElement("button");  
+  const button = document.createElement("button");
   const rule = document.createElement("hr");
   const text = document.createTextNode(`Served ${servedRequests} requests`);
   const error = document.createTextNode(`Error fetching data`);
 
   if (hasErrored) {
     container.appendChild(error);
-  } else {            
-      container.appendChild(text);
-      container.appendChild(rule);
-      container.appendChild(button);
+  } else {
+    container.appendChild(text);
+    container.appendChild(rule);
+    container.appendChild(button);
 
-      button.innerHTML = "Get data";
-      button.addEventListener("click", async () => {
-          return await dataGenerator.next().then(() => render());
+    button.innerHTML = "Get data";
+    button.addEventListener("click", async () => {
+      return await generator.next().then(data => {
+        const subreddit = data.value && data.value.data.children[0]["data"]["subreddit"];
+        subreddit && (requestedData[subreddit] = data.value);
+
+        if (data.done) {
+          hasCompleted = true;
+          console.info(
+            `Successfully fetched data from ${servedRequests} sources`,
+            requestedData
+          );
+        }
+
+        render();
       });
+    });
   }
 
   if (body.hasChildNodes()) body.innerHTML = "";
-  body.appendChild(container);
+
+  if (hasCompleted) {
+    const completedContainer = document.createElement("div");
+    const text = document.createTextNode("All done!");
+
+    completedContainer.appendChild(text);
+    body.appendChild(completedContainer);
+  } else {
+    body.appendChild(container);
+  }
 }
 
 async function* getData() {
-  // Get reddit soccer -> football -> baseball data in that order
   let soccerData, footballData, baseballData;
 
   try {
@@ -51,9 +74,7 @@ async function* getData() {
 }
 
 // Use generator
-const dataGenerator = getData();
+generator = getData();
 
 // Start app
-(() => {
-  render();
-})();
+(() => render())();
