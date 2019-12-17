@@ -23,7 +23,7 @@ function render() {
     button.innerHTML = "Get data";
     button.addEventListener("click", async () => {
       return await generator.next().then(data => {
-        const subreddit = data.value && data.value.data.children[0]["data"]["subreddit"];
+        const subreddit = data.value && data.value.data.children[0]["data"]["subreddit"] || servedRequests.toString();
         subreddit && (requestedData[subreddit] = data.value);
 
         if (data.done) {
